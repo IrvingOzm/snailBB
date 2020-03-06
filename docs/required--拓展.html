@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Basic JSON Editor Example</title>
+    <script src="../dist/jsoneditor.js"></script>
+  </head>
+  <body>
+    <h1>Basic JSON Editor Example</h1>
+    
+    <div id='editor_holder'></div>
+    <button id='submit'>Submit (console.log)</button>
+    
+    <script>
+      // Initialize the editor with a JSON schema
+      var editor = new JSONEditor(document.getElementById('editor_holder'),{
+        schema: {
+          type: "object",
+          title: "Car",
+          properties: {
+            make: {
+              type: "string",
+              enum: [
+                "Toyota",
+                "BMW",
+                "Honda",
+                "Ford",
+                "Chevy",
+                "VW"
+              ],
+              minLength: 1
+            },
+            upload_default: {
+              minLength: 1,
+              type: "string",
+              format: "url",
+              options: {
+                upload: true
+              },
+              minLength: 1
+            },
+            model: {
+              type: "string",
+              minLength: 1
+            },
+            year: {
+              type: "integer",
+              enum: [
+                1995,1996,1997,1998,1999,
+                2000,2001,2002,2003,2004,
+                2005,2006,2007,2008,2009,
+                2010,2011,2012,2013,2014
+              ],
+              default: 2008,
+              minLength: 1
+            },
+            safety: {
+              type: "integer",
+              format: "rating",
+              maximum: "5",
+              exclusiveMaximum: false,
+              readonly: false,
+              minLength: 1
+            },
+            fontSize: {
+              type: "integer",
+              enum: [10,11,12,14,16,18,20,22,24,36,48,60,72,100],
+              default: 24,
+              minLength: 1,
+              options: {
+                // Override defaullt options
+                select2_options: {
+                  width: 'off'
+                }
+              }
+            },
+            color: {
+              minLength: 1,
+              type: "string",
+              enum: ["black","red","green","blue","yellow","orange","purple","brown","white","cyan","maagenta"]
+            },
+            font: {
+              minLength: 1,
+              type: "string",
+              enumSource: "possible_fonts",
+              watch: {
+                "possible_fonts": "root.possibleFonts"
+              },
+            },
+            weight: {
+              minLength: 1,
+              type: "string",
+              enum: ["normal","bold","bolder","lighter"],
+              options: {
+                enum_titles: ["Normal (400)","Bold (700)","Bolder (900)","Lighter (200)"]
+              }
+            },
+            tags: {
+              minLength: 1,
+              type: "array",
+              uniqueItems: true,
+              format: "select",
+              items: {
+                type: "string",
+                enum: ["bold","italic","smallcaps"]
+              }
+            },
+            "fsdatetime": {
+              minLength: 1,
+              "type": "string",
+              "format": "datetime-local",
+              "title": "Datetime (String)",
+              "description": "Standard datetime-local field with flatpickr",
+              "options": {
+                "grid_columns": 4,
+                "inputAttributes": {
+                  "placeholder": "Enter datetime"
+                },
+                "flatpickr": {
+                  "wrap": true,
+                  "time_24hr": true,
+                  "allowInput": true
+                }
+            }
+          },
+          "idate": {
+            minLength: 1,
+            "type": "integer",
+            "format": "date",
+            "title": "Date (Integer)",
+            "description": "Integer date field",
+            "options": {
+              "grid_columns": 4,
+              "inputAttributes": {
+                "placeholder": "Enter date"
+              }
+            }
+          },
+          upload_default: {
+            minLength: 1,
+            type: "string",
+            format: "url",
+            options: {
+              upload: true
+            }
+          }
+          }
+        }
+      });
+
+      // Hook up the submit button to log to the console
+      document.getElementById('submit').addEventListener('click',function() {
+        // Get the value from the editor
+        console.log(editor.getValue());
+      });
+    </script>
+  </body>
+</html>

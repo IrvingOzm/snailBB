@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Basic JSON Editor Example</title>
+    <script src="../dist/jsoneditor.js"></script>
+  </head>
+  <body>
+    <h1>Basic JSON Editor Example</h1>
+    
+    <div id='editor_holder'></div>
+    <button id='submit'>Submit (console.log)</button>
+    
+    <script>
+      // Initialize the editor with a JSON schema
+      var editor = new JSONEditor(document.getElementById('editor_holder'),{
+        schema: {
+          type: "object",
+          title: "Car",
+          properties: {
+            upload_default: {
+              label: "默认上传",
+              minLength: 1,
+              type: "string",
+              format: "url",
+              options: {
+                upload: true
+              },
+              minLength: 1
+            },
+            image: {
+              label: "限制图片",
+              type: "string",
+              format: "url",
+              options: {
+                upload: true,
+                type: "image"
+              }
+            },
+            pdf: {
+              label: "限制pdf",
+              type: "string",
+              format: "url",
+              options: {
+                upload: true,
+                type: "pdf"
+              }
+            },
+            video: {
+              label: "限制video",
+              type: "string",
+              format: "url",
+              options: {
+                upload: true,
+                type: "video"
+              }
+            },
+            audio: {
+              label: "限制audio",
+              type: "string",
+              format: "url",
+              options: {
+                upload: true,
+                type: "audio"
+              }
+            },
+            multiple: {
+              // 多选需要用','，隔开
+              label: "多选类型",
+              type: "string",
+              format: "url",
+              options: {
+                upload: true,
+                type: "image,video"
+              }
+            }
+          }
+        }
+      });
+
+      // Hook up the submit button to log to the console
+      document.getElementById('submit').addEventListener('click',function() {
+        // Get the value from the editor
+        console.log(editor.getValue());
+      });
+    </script>
+  </body>
+</html>
