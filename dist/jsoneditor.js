@@ -2,7 +2,7 @@
  * @name JSON Editor
  * @description JSON Schema Based Editor
  * This library is the continuation of jdorn's great work (see also https://github.com/jdorn/json-editor/issues/800)
- * @version 1.5.1
+ * @version {{ VERSION }}
  * @author Jeremy Dorn
  * @see https://github.com/jdorn/json-editor/
  * @see https://github.com/json-editor/json-editor
@@ -7382,15 +7382,17 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
 
     this.preview.innerHTML = '';
 
-    if(!this.preview_value) return;
+    var file = this.uploader && this.uploader.files[0];
+
+    // 大文件event.target.result为空
+    // ouziming 2020-04-14
+    if((!this.preview_value && !file) || (!this.preview_value && file.size < 100000000)) return;
 
     var self = this;
 
     var mime = this.preview_value.match(/^data:([^;,]+)[;,]/);
     if(mime) mime = mime[1];
-    if(!mime) mime = 'unknown';
-
-    var file = this.uploader.files[0];
+    if(!mime) mime = file.type || 'unknown' ;
 
     this.preview.innerHTML = '<strong>格式:</strong> '+mime+', <strong>文件大小:</strong> '+file.size+' bytes';
     if(mime.substr(0,5)==="image") {
