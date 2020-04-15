@@ -166,6 +166,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   },
   build: function() {
     var self = this;
+    console.log(this.schema);
     // if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     /**
      * 必填加*号提示
@@ -223,6 +224,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     // Store new value and propogate change event
     this.value = new_val;
     this.onChange(true);
+
   },
   setupSelect2: function() {
     // If the Select2 library is loaded use it when we have lots of items

@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "pets": {
+      "type": "array",
+      "format": "table",
+      "title": "Pets",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cat",
+              "dog",
+              "bird",
+              "reptile",
+              "other"
+            ],
+            "default": "dog"
+          },
+
+          "fixed": {
+            "type": "boolean",
+            "title": "spayed / neutered"
+          }
+        }
+      }
+    }
+  }
+}

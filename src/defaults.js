@@ -387,6 +387,11 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
   if (schema.type === "string" && schema.format === "starrating") return "starrating";
 });
 
+// Use a specialized editor for starratings
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+  if (schema.type === "string" && schema.format === "pageurl") return "pageUrl";
+});
+
 // hyper-link describeBy Resolver
 JSONEditor.defaults.resolvers.unshift(function(schema) {
   if (schema.links) {

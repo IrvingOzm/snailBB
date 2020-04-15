@@ -67,6 +67,7 @@ module.exports = function (grunt) {
           'src/editors/radio.js',
           'src/editors/describedby.js',
           'src/editors/karaoke.js',
+          'src/editors/pageUrl.js',
 
           // All the themes and iconlibs
           'src/theme.js',
