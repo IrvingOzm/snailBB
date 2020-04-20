@@ -19,9 +19,10 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     var arr = this.initSelectArr();
     this.castArr = this.castSelect(arr);
 
-    var enterpriseData = this.get('http://localhost:8082/api/theme-pages?enterpriseCode=020588549',function (res) {
-      // console.log(res);
-    });
+
+
+
+
 
     this.input = this.theme.getSelectInput(this.castArr);
     this.selectWrap = this.theme.getFormControl(this.title, this.input);
@@ -46,6 +47,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       inputVal.items.map(function (item) {
         val[item]='';
       });
+
       self.setValue(JSON.stringify(val));
 
     });
@@ -64,7 +66,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     oReq.onload = function () {
       callback(oReq.responseText);
     };
-    oReq.open("get", url, true);
+    oReq.open("get", url, false);
     oReq.send();
   },
 
@@ -114,28 +116,60 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     //请求数据
     var name ='localItem';
     var labelName = '本地栏目';
-    self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
-    self[name+'Input'] =  self.theme.getSelectInput(self.castArr);
-    self[name+'Input'].classList.add(name);
-    self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
-    self.container.appendChild(self[name+'Wrap']);
-    self.destroyOtherItems(name,self,isFirst);
-    //监听事件。
-    self[name+'Input'].addEventListener('change',function () {
-      self.concatData(self);
+    var enterpriseData = self.get('/render/api/theme-render/themes-pages',function (res) {
+      self.destroyOtherItems(name,self,isFirst);
+    var resData  = JSON.parse(res).data;
+    var optionTheme = self.schema.option.theme;
+
+    var filterData = resData.filter(function(item){
+      if(item.id === optionTheme){
+        return item;
+      }
     });
+    console.log(filterData);
+    var selectArr  = [];
+    filterData[0].pages.map(function (item) {
+      if(item.title){
+        selectArr.push(item.title);
+      }
+    });
+
+      self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
+      //res
+      self[name+'Input'] =  self.theme.getSelectInput(selectArr);
+      self[name+'Input'].classList.add(name);
+      self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
+      self.container.appendChild(self[name+'Wrap']);
+
+      //监听事件。
+    setTimeout(function () {
+      self[name+'Input'].addEventListener('change',function () {
+        self.concatData(self);
+      });
+    },0);
+
+
+    });
+
+    // res ='{"code":200,"data":[{"id":"hall-common","title":"家居标准版-主题1.2.2","pages":[{"id":"/"},{"id":"/webpage/newPageSwiper","title":"信息聚合"},{"id":"/webpage/cloudBookBox","title":"云书橱"},{"id":"/funBoxTurntable","title":"幸运大转盘"},{"id":"/webpage/wifiCode","title":"无线传屏"}]}]}'
+    // var resData  = JSON.parse(res);
+    // var optionTheme = self.schema.option.theme;
+
+
+
 
 
   },
   createWebSiteItem:function (self,isFirst){
     var name ='webSite';
     var labelName = '网址';
+    self.destroyOtherItems(name,self,isFirst);
+
     self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
     self[name+'Input'] =  self.theme.getFormInputField('text');
     self[name+'Input'].classList.add(name);
     self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
     self.container.appendChild(self[name+'Wrap']);
-    self.destroyOtherItems(name,self,isFirst);
     self[name+'Input'].addEventListener('change',function () {
       // self.setJsonValue(name,self);
       self.concatData(self);
@@ -164,12 +198,13 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   createLocalSrcItem:function (self,isFirst){
     var name ='localSrc';
     var labelName = 'windows地址';
+    self.destroyOtherItems(name,self,isFirst);
+
     self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
     self[name+'Input'] =  self.theme.getFormInputField('text');
     self[name+'Input'].classList.add(name);
     self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
     self.container.appendChild(self[name+'Wrap']);
-    self.destroyOtherItems(name,self,isFirst);
     self[name+'Input'].addEventListener('change',function () {
       // self.setJsonValue(name,self);
       self.concatData(self);
@@ -224,12 +259,13 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   createRegistryItem: function(self,isFirst){
     var name ='registry';
     var labelName = '注册码';
+    self.destroyOtherItems(name,self,isFirst);
+
     self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
     self[name+'Input'] =  self.theme.getFormInputField('text');
     self[name+'Input'].classList.add(name);
     self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
     self.container.appendChild(self[name+'Wrap']);
-    self.destroyOtherItems(name,self,isFirst);
     self[name+'Input'].addEventListener('change',function () {
       // self.setJsonValue(name,self);
       self.concatData(self);
@@ -304,22 +340,18 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     });
 
 
-    if(!isFirst){
+
 
       for (var key in items){
 
-        if(key !==activeItem){
           for (var Idx  in items[key]){
-
-
             if(self[items[key][Idx]] && self[items[key][Idx]].parentNode) self[items[key][Idx]].parentNode.removeChild(self[items[key][Idx]]);
-
           }
 
-        }
-      }
 
-    }
+      }
+    console.log('done');
+    console.log(self);
 
 
 
