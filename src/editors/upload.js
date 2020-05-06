@@ -149,17 +149,15 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
 
     this.preview.innerHTML = '';
 
-    var file = this.uploader && this.uploader.files[0];
-
-    // 大文件event.target.result为空
-    // ouziming 2020-04-14
-    if((!this.preview_value && !file) || (!this.preview_value && file.size < 100000000)) return;
+    if(!this.preview_value) return;
 
     var self = this;
 
     var mime = this.preview_value.match(/^data:([^;,]+)[;,]/);
     if(mime) mime = mime[1];
-    if(!mime) mime = file.type || 'unknown' ;
+    if(!mime) mime = 'unknown';
+
+    var file = this.uploader.files[0];
 
     this.preview.innerHTML = '<strong>格式:</strong> '+mime+', <strong>文件大小:</strong> '+file.size+' bytes';
     if(mime.substr(0,5)==="image") {

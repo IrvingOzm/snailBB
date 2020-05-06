@@ -1,7 +1,6 @@
 JSONEditor.defaults.editors.number = JSONEditor.defaults.editors.string.extend({
   build: function() {
     this._super();
-
     if (typeof this.schema.minimum !== "undefined") {
       var minimum = this.schema.minimum;
 
