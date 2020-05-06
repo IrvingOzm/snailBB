@@ -8673,8 +8673,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
 
     var val  ={id:this.input.value};
-     var inputVal =  this.initSelectArr().filter(function (i) {
-        return i.name === val.id;
+    var inputVal =  this.initSelectArr().filter(function (i) {
+      return i.name === val.id;
     })[0];
     inputVal.items.map(function (item) {
       val[item]='';
@@ -8685,7 +8685,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       e.stopPropagation();
       var val  ={id:self.input.value};
       var inputVal  = self.initSelectArr().filter(function (item) {
-         return item.name === self.input.value;
+        return item.name === self.input.value;
       })[0];
       inputVal.items.map(function (item) {
         val[item]='';
@@ -8742,8 +8742,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     var arr = [
       {name:'本地栏目',create:this.createItemByLocalItem,items:['localItem'],id:'localItem'},
       {name:'远程网站',create:this.createWebSiteItem,items:['webSite'],id:'webSite'},
-      {name:'本地应用路径',create:this.createLocalSrcItem,items:['localSrc','androidSrc','linuxSrc','resident'],id:'localSrc'},
-      {name:'windows注册表',create:this.createRegistryItem,items:['registry','registryKey','resident'],id:'registry'},
+      {name:'本地应用路径',create:this.createLocalSrcItem,items:['localSrc','linuxSrc','resident'],id:'localSrc'},
+      {name:'应用注册表',create:this.createRegistryItem,items:['registry','registryKey','resident','androidRegistry','linuxRegistry'],id:'registry'},
     ];
     return arr;
   },
@@ -8761,21 +8761,22 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     var labelName = '本地栏目';
     var enterpriseData = self.get('/render/api/theme-render/themes-pages',function (res) {
       self.destroyOtherItems(name,self,isFirst);
-    var resData  = JSON.parse(res).data;
-    var optionTheme = self.schema.option.theme;
+      var resData  = JSON.parse(res).data;
+      var optionTheme = self.schema.option.theme;
 
-    var filterData = resData.filter(function(item){
-      if(item.id === optionTheme){
-        return item;
-      }
-    });
-    console.log(filterData);
-    var selectArr  = [];
-    filterData[0].pages.map(function (item) {
-      if(item.title){
-        selectArr.push(item.title);
-      }
-    });
+      var filterData = resData.filter(function(item){
+        if(item.id === optionTheme){
+          return item;
+        }
+      });
+      console.log(filterData);
+      var selectArr  = [];
+      selectArr.push('---请选择---');
+      filterData[0].pages.map(function (item) {
+        if(item.title){
+          selectArr.push(item.title);
+        }
+      });
 
       self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
       //res
@@ -8784,12 +8785,19 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
       self.container.appendChild(self[name+'Wrap']);
 
+      // init 初始化数据
+
+
+
+      // document.getElementsByClassName('localItem')[0].value = selectArr[0];
       //监听事件。
-    setTimeout(function () {
-      self[name+'Input'].addEventListener('change',function () {
-        self.concatData(self);
-      });
-    },0);
+
+      setTimeout(function () {
+        self[name+'Input'].addEventListener('change',function () {
+          self.concatData(self);
+        });
+      },0);
+
 
 
     });
@@ -8823,12 +8831,19 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   concatData :function (self) {
     var val  ={id:self.input.value};
     var inputVal  = self.initSelectArr().filter(function (item) {
+
       return item.name === self.input.value;
     })[0];
+
+    console.log('12121212=>?');
+    console.log(inputVal.items);
+
     inputVal.items.map(function (item) {
       if(self[item+'Input'].type ==='checkbox'){
         val[item] = self[item+'Input'].checked;
       }else{
+        console.log('val====>');
+        console.log(val);
         val[item]=self[item+'Input'].value;
       }
 
@@ -8853,20 +8868,20 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       self.concatData(self);
     });
 
-
-    var androidName ='androidSrc';
-    var androidLabelName = 'Andorid安装包地址';
-    self[androidName+'Title'] =  self.theme.getFormInputLabel(androidLabelName);
-    self[androidName+'Input'] =  self.theme.getFormInputField('text');
-    self[androidName+'Wrap'] = self.theme.getFormControl(self[androidName+'Title'],self[androidName+'Input']);
-    self.container.appendChild(self[androidName+'Wrap']);
-    self[androidName+'Input'].addEventListener('change',function () {
-      // self.setJsonValue(name,self);
-      self.concatData(self);
-    });
+    //
+    // var androidName ='androidSrc';
+    // var androidLabelName = 'Andorid地址';
+    // self[androidName+'Title'] =  self.theme.getFormInputLabel(androidLabelName);
+    // self[androidName+'Input'] =  self.theme.getFormInputField('text');
+    // self[androidName+'Wrap'] = self.theme.getFormControl(self[androidName+'Title'],self[androidName+'Input']);
+    // self.container.appendChild(self[androidName+'Wrap']);
+    // self[androidName+'Input'].addEventListener('change',function () {
+    //   // self.setJsonValue(name,self);
+    //   self.concatData(self);
+    // });
 
     var linuxName ='linuxSrc';
-    var linuxLabelName = 'linux安装包地址';
+    var linuxLabelName = 'linux地址';
     self[linuxName+'Title'] =  self.theme.getFormInputLabel(linuxLabelName);
     self[linuxName+'Input'] =  self.theme.getFormInputField('text');
     self[linuxName+'Wrap'] = self.theme.getFormControl(self[linuxName+'Title'],self[linuxName+'Input']);
@@ -8889,11 +8904,6 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     self[checkboxName+'Input'].addEventListener('change',function () {
       self.concatData(self);
       //拼好数据 送去 value方法 不要放一起
-
-
-
-
-
       // self.setJsonValue(name,self);
     });
 
@@ -8901,7 +8911,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   },
   createRegistryItem: function(self,isFirst){
     var name ='registry';
-    var labelName = '注册码';
+    var labelName = 'windows注册码';
     self.destroyOtherItems(name,self,isFirst);
 
     self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
@@ -8915,12 +8925,39 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     });
 
     var keyName ='registryKey';
-    var keyLabelName = '秘钥';
+    var keyLabelName = 'windows秘钥';
     self[keyName+'Title'] =  self.theme.getFormInputLabel(keyLabelName);
     self[keyName+'Input'] =  self.theme.getFormInputField('text');
     self[keyName+'Wrap'] = self.theme.getFormControl(self[keyName+'Title'],self[keyName+'Input']);
     self.container.appendChild(self[keyName+'Wrap']);
     self[keyName+'Input'].addEventListener('change',function () {
+      // self.setJsonValue(name,self);
+      self.concatData(self);
+    });
+
+
+
+    var andName ='androidRegistry';
+    var andLabelName = 'Android安装包名';
+    self[andName+'Title'] =  self.theme.getFormInputLabel(andLabelName);
+    self[andName+'Input'] =  self.theme.getFormInputField('text');
+    self[andName+'Input'].classList.add(andName);
+    self[andName+'Wrap'] = self.theme.getFormControl(self[andName+'Title'],self[andName+'Input']);
+    self.container.appendChild(self[andName+'Wrap']);
+    self[andName+'Input'].addEventListener('change',function () {
+      // self.setJsonValue(name,self);
+      self.concatData(self);
+    });
+
+
+    var linuxName ='linuxRegistry';
+    var linuxLabelName = 'linux注册码';
+    self[linuxName+'Title'] =  self.theme.getFormInputLabel(linuxLabelName);
+    self[linuxName+'Input'] =  self.theme.getFormInputField('text');
+    self[linuxName+'Input'].classList.add(linuxName);
+    self[linuxName+'Wrap'] = self.theme.getFormControl(self[linuxName+'Title'],self[linuxName+'Input']);
+    self.container.appendChild(self[linuxName+'Wrap']);
+    self[linuxName+'Input'].addEventListener('change',function () {
       // self.setJsonValue(name,self);
       self.concatData(self);
     });
@@ -8968,7 +9005,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
         data[changeItem] = self[changeItem+'Input'].value;
       }
     });
-      return data;
+    return data;
   },
 
 
@@ -8985,14 +9022,14 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
 
 
-      for (var key in items){
+    for (var key in items){
 
-          for (var Idx  in items[key]){
-            if(self[items[key][Idx]] && self[items[key][Idx]].parentNode) self[items[key][Idx]].parentNode.removeChild(self[items[key][Idx]]);
-          }
-
-
+      for (var Idx  in items[key]){
+        if(self[items[key][Idx]] && self[items[key][Idx]].parentNode) self[items[key][Idx]].parentNode.removeChild(self[items[key][Idx]]);
       }
+
+
+    }
     console.log('done');
     console.log(self);
 
@@ -9032,7 +9069,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
       var setItem =  this.initSelectArr().filter(function (item) {
         return item.name === val.id;
-     })[0];
+      })[0];
       setItem.create(this,false);
 
       setItem.items.map(function (item) {
@@ -9046,8 +9083,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
         }
       });
       self.input.value = val.id;
-        this.value = JSON.stringify(val);
-        this.onChange(true);
+      this.value = JSON.stringify(val);
+      this.onChange(true);
     }
     // if(this.value !== val&& val && this.loopVal!==this.value) {
 
