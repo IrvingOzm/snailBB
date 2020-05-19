@@ -8673,8 +8673,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
 
     var val  ={id:this.input.value};
-     var inputVal =  this.initSelectArr().filter(function (i) {
-        return i.name === val.id;
+    var inputVal =  this.initSelectArr().filter(function (i) {
+      return i.name === val.id;
     })[0];
     inputVal.items.map(function (item) {
       val[item]='';
@@ -8685,7 +8685,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       e.stopPropagation();
       var val  ={id:self.input.value};
       var inputVal  = self.initSelectArr().filter(function (item) {
-         return item.name === self.input.value;
+        return item.name === self.input.value;
       })[0];
       inputVal.items.map(function (item) {
         val[item]='';
@@ -8742,8 +8742,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     var arr = [
       {name:'本地栏目',create:this.createItemByLocalItem,items:['localItem'],id:'localItem'},
       {name:'远程网站',create:this.createWebSiteItem,items:['webSite'],id:'webSite'},
-      {name:'本地应用路径',create:this.createLocalSrcItem,items:['localSrc','androidSrc','linuxSrc','resident'],id:'localSrc'},
-      {name:'windows注册表',create:this.createRegistryItem,items:['registry','registryKey','resident'],id:'registry'},
+      {name:'本地应用路径',create:this.createLocalSrcItem,items:['localSrc','linuxSrc','resident'],id:'localSrc'},
+      {name:'应用注册表',create:this.createRegistryItem,items:['registry','registryKey','resident','androidRegistry','linuxRegistry'],id:'registry'},
     ];
     return arr;
   },
@@ -8761,21 +8761,22 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     var labelName = '本地栏目';
     var enterpriseData = self.get('/render/api/theme-render/themes-pages',function (res) {
       self.destroyOtherItems(name,self,isFirst);
-    var resData  = JSON.parse(res).data;
-    var optionTheme = self.schema.option.theme;
+      var resData  = JSON.parse(res).data;
+      var optionTheme = self.schema.option.theme;
 
-    var filterData = resData.filter(function(item){
-      if(item.id === optionTheme){
-        return item;
-      }
-    });
-    console.log(filterData);
-    var selectArr  = [];
-    filterData[0].pages.map(function (item) {
-      if(item.title){
-        selectArr.push(item.title);
-      }
-    });
+      var filterData = resData.filter(function(item){
+        if(item.id === optionTheme){
+          return item;
+        }
+      });
+      console.log(filterData);
+      var selectArr  = [];
+      selectArr.push('---请选择---');
+      filterData[0].pages.map(function (item) {
+        if(item.title){
+          selectArr.push(item.title);
+        }
+      });
 
       self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
       //res
@@ -8784,12 +8785,19 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       self[name+'Wrap'] = self.theme.getFormControl(self[name+'Title'],self[name+'Input']);
       self.container.appendChild(self[name+'Wrap']);
 
+      // init 初始化数据
+
+
+
+      // document.getElementsByClassName('localItem')[0].value = selectArr[0];
       //监听事件。
-    setTimeout(function () {
-      self[name+'Input'].addEventListener('change',function () {
-        self.concatData(self);
-      });
-    },0);
+
+      setTimeout(function () {
+        self[name+'Input'].addEventListener('change',function () {
+          self.concatData(self);
+        });
+      },0);
+
 
 
     });
@@ -8823,12 +8831,19 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   concatData :function (self) {
     var val  ={id:self.input.value};
     var inputVal  = self.initSelectArr().filter(function (item) {
+
       return item.name === self.input.value;
     })[0];
+
+    console.log('12121212=>?');
+    console.log(inputVal.items);
+
     inputVal.items.map(function (item) {
       if(self[item+'Input'].type ==='checkbox'){
         val[item] = self[item+'Input'].checked;
       }else{
+        console.log('val====>');
+        console.log(val);
         val[item]=self[item+'Input'].value;
       }
 
@@ -8853,20 +8868,20 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
       self.concatData(self);
     });
 
-
-    var androidName ='androidSrc';
-    var androidLabelName = 'Andorid安装包地址';
-    self[androidName+'Title'] =  self.theme.getFormInputLabel(androidLabelName);
-    self[androidName+'Input'] =  self.theme.getFormInputField('text');
-    self[androidName+'Wrap'] = self.theme.getFormControl(self[androidName+'Title'],self[androidName+'Input']);
-    self.container.appendChild(self[androidName+'Wrap']);
-    self[androidName+'Input'].addEventListener('change',function () {
-      // self.setJsonValue(name,self);
-      self.concatData(self);
-    });
+    //
+    // var androidName ='androidSrc';
+    // var androidLabelName = 'Andorid地址';
+    // self[androidName+'Title'] =  self.theme.getFormInputLabel(androidLabelName);
+    // self[androidName+'Input'] =  self.theme.getFormInputField('text');
+    // self[androidName+'Wrap'] = self.theme.getFormControl(self[androidName+'Title'],self[androidName+'Input']);
+    // self.container.appendChild(self[androidName+'Wrap']);
+    // self[androidName+'Input'].addEventListener('change',function () {
+    //   // self.setJsonValue(name,self);
+    //   self.concatData(self);
+    // });
 
     var linuxName ='linuxSrc';
-    var linuxLabelName = 'linux安装包地址';
+    var linuxLabelName = 'linux地址';
     self[linuxName+'Title'] =  self.theme.getFormInputLabel(linuxLabelName);
     self[linuxName+'Input'] =  self.theme.getFormInputField('text');
     self[linuxName+'Wrap'] = self.theme.getFormControl(self[linuxName+'Title'],self[linuxName+'Input']);
@@ -8889,11 +8904,6 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     self[checkboxName+'Input'].addEventListener('change',function () {
       self.concatData(self);
       //拼好数据 送去 value方法 不要放一起
-
-
-
-
-
       // self.setJsonValue(name,self);
     });
 
@@ -8901,7 +8911,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
   },
   createRegistryItem: function(self,isFirst){
     var name ='registry';
-    var labelName = '注册码';
+    var labelName = 'windows注册码';
     self.destroyOtherItems(name,self,isFirst);
 
     self[name+'Title'] =  self.theme.getFormInputLabel(labelName);
@@ -8915,12 +8925,39 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     });
 
     var keyName ='registryKey';
-    var keyLabelName = '秘钥';
+    var keyLabelName = 'windows秘钥';
     self[keyName+'Title'] =  self.theme.getFormInputLabel(keyLabelName);
     self[keyName+'Input'] =  self.theme.getFormInputField('text');
     self[keyName+'Wrap'] = self.theme.getFormControl(self[keyName+'Title'],self[keyName+'Input']);
     self.container.appendChild(self[keyName+'Wrap']);
     self[keyName+'Input'].addEventListener('change',function () {
+      // self.setJsonValue(name,self);
+      self.concatData(self);
+    });
+
+
+
+    var andName ='androidRegistry';
+    var andLabelName = 'Android安装包名';
+    self[andName+'Title'] =  self.theme.getFormInputLabel(andLabelName);
+    self[andName+'Input'] =  self.theme.getFormInputField('text');
+    self[andName+'Input'].classList.add(andName);
+    self[andName+'Wrap'] = self.theme.getFormControl(self[andName+'Title'],self[andName+'Input']);
+    self.container.appendChild(self[andName+'Wrap']);
+    self[andName+'Input'].addEventListener('change',function () {
+      // self.setJsonValue(name,self);
+      self.concatData(self);
+    });
+
+
+    var linuxName ='linuxRegistry';
+    var linuxLabelName = 'linux注册码';
+    self[linuxName+'Title'] =  self.theme.getFormInputLabel(linuxLabelName);
+    self[linuxName+'Input'] =  self.theme.getFormInputField('text');
+    self[linuxName+'Input'].classList.add(linuxName);
+    self[linuxName+'Wrap'] = self.theme.getFormControl(self[linuxName+'Title'],self[linuxName+'Input']);
+    self.container.appendChild(self[linuxName+'Wrap']);
+    self[linuxName+'Input'].addEventListener('change',function () {
       // self.setJsonValue(name,self);
       self.concatData(self);
     });
@@ -8968,7 +9005,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
         data[changeItem] = self[changeItem+'Input'].value;
       }
     });
-      return data;
+    return data;
   },
 
 
@@ -8985,14 +9022,14 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
 
 
-      for (var key in items){
+    for (var key in items){
 
-          for (var Idx  in items[key]){
-            if(self[items[key][Idx]] && self[items[key][Idx]].parentNode) self[items[key][Idx]].parentNode.removeChild(self[items[key][Idx]]);
-          }
-
-
+      for (var Idx  in items[key]){
+        if(self[items[key][Idx]] && self[items[key][Idx]].parentNode) self[items[key][Idx]].parentNode.removeChild(self[items[key][Idx]]);
       }
+
+
+    }
     console.log('done');
     console.log(self);
 
@@ -9032,7 +9069,7 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
 
       var setItem =  this.initSelectArr().filter(function (item) {
         return item.name === val.id;
-     })[0];
+      })[0];
       setItem.create(this,false);
 
       setItem.items.map(function (item) {
@@ -9046,8 +9083,8 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
         }
       });
       self.input.value = val.id;
-        this.value = JSON.stringify(val);
-        this.onChange(true);
+      this.value = JSON.stringify(val);
+      this.onChange(true);
     }
     // if(this.value !== val&& val && this.loopVal!==this.value) {
 
@@ -9080,6 +9117,157 @@ JSONEditor.defaults.editors.pageUrl = JSONEditor.AbstractEditor.extend({
     if(this.uploader && this.uploader.parentNode) this.uploader.parentNode.removeChild(this.uploader);
 
     this._super();
+  }
+});
+
+  JSONEditor.defaults.editors.positionSelect = JSONEditor.AbstractEditor.extend({
+
+    build:function () {
+    var self = this;
+    console.log(10);
+    this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
+    /**
+     * 必填加*号提示
+     * ouziming
+     */
+    if ((this.schema.minLength && this.schema.minLength >= 1) || (this.jsoneditor.schema.required && this.jsoneditor.schema.required.indexOf(this.key) > -1)) {
+      if (!this.options.compact) this.title = this.header = this.label = this.theme.getFormRequiredInputLabel(this.getTitle());
+    } else {
+      if (!this.options.compact) this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
+    }
+
+    //
+    self.PositionSelectLabel =  self.theme.getFormInputLabel('坐标选择');
+    // self.PositionSelectContainer =  self.theme.getFormInputField('text');
+    self.PositionSelectContainer =   document.createElement('div');
+    self.PositionSelectContainer.id = 'l-map';
+    self.PositionSelectContainer.style.width = '500px';
+    self.PositionSelectContainer.style.height = '200px';
+    self.PositionSelectContainer.classList.add('checkResident');
+    self.PositionSelectWrap = self.theme.getFormControl(self.PositionSelectLabel,self.PositionSelectContainer);
+    self.PositionSelectWrap.style.position = 'relative';
+    self.container.appendChild(self.PositionSelectWrap);
+    console.log(self.PositionSelectWrap);
+    var scri = document.createElement("script");
+    scri.src="http://api.map.baidu.com/getscript?v=2.0&ak=2xUqFSZa1fjwhOzOtqNuclK7Iho5XCIE&services=&t=20200327103013";
+    // self.PositionSelectWrap.appendChild(scri);
+    var searchInputWrap = document.createElement('div');
+    searchInputWrap.id = 'r-result';
+    searchInputWrap.style.position = 'absolute';
+    searchInputWrap.style.top = '0px';
+    searchInputWrap.style.left = '120px';
+     var style = document.createElement("style");
+
+     style.type = "text/css";
+        style.appendChild(document.createTextNode(".tangram-suggestion-main {z-index: 10000;}"));
+        document.head.appendChild(style);
+    searchInputWrap.innerHTML = '请输入:' ;
+    var  searchInput = document.createElement('input');
+    searchInput.id = 'suggestId';
+    searchInput.setAttribute("type","text");
+    searchInput.style.width = '150px';
+    searchInputWrap.appendChild(searchInput);
+    self.PositionSelectWrap.append(searchInputWrap);
+    var searchDiv = document.createElement('div');
+    searchDiv.id =  'searchResultPanel' ;
+    searchDiv.style.border = 'border:1px solid #C0C0C0;';
+    searchDiv.style.width = '150px';
+    searchDiv.style.height = 'auto';
+    searchDiv.style.display = 'none';
+    self.PositionSelectWrap.append(searchDiv);
+    scri.onload =function () {
+      var map = new BMap.Map("l-map",{enableMapClick:false});
+      // 百度地图API功能
+      function G(id) {
+        return document.getElementById(id);
+      }
+
+
+      map.centerAndZoom("北京", 12);                   // 初始化地图,设置城市和地图级别。
+
+      var ac = new BMap.Autocomplete(    //建立一个自动完成的对象
+          {
+            "input": "suggestId",
+             "location": map
+          });
+
+      ac.addEventListener("onhighlight", function (e) {  //鼠标放在下拉列表上的事件
+        var str = "";
+        var _value = e.fromitem.value;
+        var value = "";
+        if (e.fromitem.index > -1) {
+          value = _value.province + _value.city + _value.district + _value.street + _value.business;
+        }
+        str = "FromItem<br />index = " + e.fromitem.index + "<br />value = " + value;
+
+        value = "";
+        if (e.toitem.index > -1) {
+          _value = e.toitem.value;
+          value = _value.province + _value.city + _value.district + _value.street + _value.business;
+        }
+        str += "<br />ToItem<br />index = " + e.toitem.index + "<br />value = " + value;
+        G("searchResultPanel").innerHTML = str;
+      });
+
+      var myValue;
+        function setPlace() {
+            var local ;
+            map.clearOverlays();    //清除地图上所有覆盖物
+
+            function myFun() {
+                var pp = local.getResults().getPoi(0).point;    //获取第一个智能搜索的结果
+                console.log('初始坐标');
+                console.log(pp);
+                map.centerAndZoom(pp, 18);
+                var marker = new BMap.Marker(pp);
+                map.addOverlay(marker);    //添加标注
+                marker.enableDragging();
+                self.setValue({location:pp});
+                marker.addEventListener('dragend',function (e) {
+                    console.log(e.point);
+                    self.setValue({location:e.point});
+                });
+            }
+            local = new BMap.LocalSearch(map, { //智能搜索
+                onSearchComplete: myFun
+            });
+
+
+
+
+            local.search(myValue);
+        }
+      ac.addEventListener("onconfirm", function (e) {    //鼠标点击下拉列表后的事件
+        var _value = e.item.value;
+        myValue = _value.province + _value.city + _value.district + _value.street + _value.business;
+        G("searchResultPanel").innerHTML = "onconfirm<br />index = " + e.item.index + "<br />myValue = " + myValue;
+
+        setPlace();
+      });
+
+
+
+      map.enableScrollWheelZoom(true);
+      setTimeout(function(){
+        map.enableDragging();   //两秒后开启拖拽
+        //map.enableInertialDragging();   //两秒后开启惯性拖拽
+      }, 2000);
+
+    };
+    document.head.appendChild(scri);
+
+  // },1000)
+
+  },
+
+  setValue: function (val) {
+    if(val){
+      this.value =JSON.stringify(val);
+      this.onChange(true);
+      console.log(this.value);
+    }
+
+
   }
 });
 
@@ -12437,6 +12625,11 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 // Use a specialized editor for starratings
 JSONEditor.defaults.resolvers.unshift(function(schema) {
   if (schema.type === "string" && schema.format === "pageurl") return "pageUrl";
+});
+
+// Use a specialized editor for starratings
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+  if (schema.type === "string" && schema.format === "positionselect") return "positionSelect";
 });
 
 // hyper-link describeBy Resolver

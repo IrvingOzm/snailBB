@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>JSON Editor Selectize Integration Example</title>
+    <script src="../dist/jsoneditor.js"></script>
+  </head>
+  <body>
+    <h1>JSON Editor Selectize Integration Example</h1>
+
+    <p style='margin-bottom:20px;'>This example demonstrates JSONEditor's integration with Selectize</p>
+
+    <div id='editor_holder'></div>
+    <button id='submit'>Submit (console.log)</button>
+
+    <script>
+    // Global selectize options
+      // Initialize the editor with a JSON schema
+      var editor = new JSONEditor(document.getElementById('editor_holder'),{
+        ajax:true,
+        schema:{
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type":'object',
+          "properties": {
+            "location": {
+              "title":'应用类型',
+              "format":'positionselect',
+              "type":'string',
+            },
+            'name':{
+              'title':'名称',
+              'type':'string'
+            },
+            'address':{
+              'title':'地址',
+              'type':'string'
+            },
+            'tel':{
+              'title':'电话',
+              'type':'string'
+            },
+
+
+
+          }
+        },
+
+        no_additional_properties: true,
+
+        // Require all properties by default
+        required_by_default: true,
+
+
+      });
+    // editor.setValue({pageUrl: "{\"id\":\"远程网站\",\"webSite\":\"11aszxzxz212\"}", str: "12"})
+    // editor.setValue({pageUrl: "{\"id\":\"windows注册表\",\"registry\":\"1212\",\"registryKey\":\"12\",\"resident\":true}", str: "12"})
+    // editor.setValue({pageUrl: "{\"id\":\"本地应用路径\",\"localSrc\":\"aszxwqqqw\"}", str: "12"})
+    // editor.setValue({pageUrl: "{\"id\":\"远程网站\",\"webSite\":\"zxasasasasas\"}", str: "12"})
+    // editor.setValue( {pageUrl: "{"id":"本地应用路径","localSrc":"1212","androidSrc":"1212","linuxSrc":"1212"}", str: "12"})
+    document.getElementById('submit').addEventListener('click',function() {
+      // Get the value from the editor
+      console.log(editor.getValue());
+    });
+
+    </script>
+  </body>
+</html>
+
+
+<!--"type": {-->
+<!--"title": "应用类型",-->
+<!--"type": "string",-->
+<!--"format": "select",-->
+<!--"enum": [-->
+<!--"本地网页路径",-->
+<!--"远程网站地址",-->
+<!--"执行文件本地路径",-->
+<!--"安装应用注册表 （不常驻后台）",-->
+<!--"安装应用注册表 （常驻后台）",-->
+<!--"无线传屏"-->
+<!--],-->
+<!--"propertyOrder": 4-->
+<!--},-->

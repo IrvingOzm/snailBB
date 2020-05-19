@@ -68,6 +68,7 @@ module.exports = function (grunt) {
           'src/editors/describedby.js',
           'src/editors/karaoke.js',
           'src/editors/pageUrl.js',
+          'src/editors/positionSelect.js',
 
           // All the themes and iconlibs
           'src/theme.js',
@@ -130,6 +131,7 @@ module.exports = function (grunt) {
         globals: {
           "module": true,
           "define": true,
+          "BMap": false
         }
       },
       beforeconcat: [
