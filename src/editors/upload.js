@@ -183,11 +183,11 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
         self.preview.appendChild(self.progressBar);
       }
       if(self.options.thumbnail){
-        let options = {
+        var options = {
           path: self.parh,
           width: 960,
           quality:1
-        }
+        };
         self.jsoneditor.options.uploadCompressImage(  options, file, {
           success: function(url) {
             self.setValue(url);
