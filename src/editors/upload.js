@@ -176,37 +176,65 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
     this.preview.appendChild(uploadButton);
     uploadButton.addEventListener('click',function(event) {
       event.preventDefault();
-
       uploadButton.setAttribute("disabled", "disabled");
       self.theme.removeInputError(self.uploader);
-
       if (self.theme.getProgressBar) {
         self.progressBar = self.theme.getProgressBar();
         self.preview.appendChild(self.progressBar);
       }
+      if(self.options.thumbnail){
+        var options = {
+          path: self.parh,
+          width: 960,
+          quality:1
+        };
+        self.jsoneditor.options.uploadCompressImage(  options, file, {
+          success: function(url) {
+            self.setValue(url);
 
-      self.jsoneditor.options.upload(self.path, file, {
-        success: function(url) {
-          self.setValue(url);
+            if(self.parent) self.parent.onChildEditorChange(self);
+            else self.jsoneditor.onChange();
 
-          if(self.parent) self.parent.onChildEditorChange(self);
-          else self.jsoneditor.onChange();
-
-          if (self.progressBar) self.preview.removeChild(self.progressBar);
-          uploadButton.removeAttribute("disabled");
-        },
-        failure: function(error) {
-          self.theme.addInputError(self.uploader, error);
-          if (self.progressBar) self.preview.removeChild(self.progressBar);
-          uploadButton.removeAttribute("disabled");
-        },
-        updateProgress: function(progress) {
-          if (self.progressBar) {
-            if (progress) self.theme.updateProgressBar(self.progressBar, progress);
-            else self.theme.updateProgressBarUnknown(self.progressBar);
+            if (self.progressBar) self.preview.removeChild(self.progressBar);
+            uploadButton.removeAttribute("disabled");
+          },
+          failure: function(error) {
+            self.theme.addInputError(self.uploader, error);
+            if (self.progressBar) self.preview.removeChild(self.progressBar);
+            uploadButton.removeAttribute("disabled");
+          },
+          updateProgress: function(progress) {
+            if (self.progressBar) {
+              if (progress) self.theme.updateProgressBar(self.progressBar, progress);
+              else self.theme.updateProgressBarUnknown(self.progressBar);
+            }
           }
-        }
-      });
+        });
+      }else{
+        self.jsoneditor.options.upload(self.path, file, {
+          success: function(url) {
+            self.setValue(url);
+
+            if(self.parent) self.parent.onChildEditorChange(self);
+            else self.jsoneditor.onChange();
+
+            if (self.progressBar) self.preview.removeChild(self.progressBar);
+            uploadButton.removeAttribute("disabled");
+          },
+          failure: function(error) {
+            self.theme.addInputError(self.uploader, error);
+            if (self.progressBar) self.preview.removeChild(self.progressBar);
+            uploadButton.removeAttribute("disabled");
+          },
+          updateProgress: function(progress) {
+            if (self.progressBar) {
+              if (progress) self.theme.updateProgressBar(self.progressBar, progress);
+              else self.theme.updateProgressBarUnknown(self.progressBar);
+            }
+          }
+        });
+      }
+
     });
 
     if(this.jsoneditor.options.auto_upload || this.schema.options.auto_upload) {
