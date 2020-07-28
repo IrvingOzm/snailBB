@@ -1,26 +1,30 @@
+/* eslint-disable */
 JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
-  setValue: function(value,initial) {
-    value = this.typecast(value||'');
+  setValue: function(value, initial) {
+    value = this.typecast(value || '');
 
     // Sanitize value before setting it
     var sanitized = value;
-    if(this.enum_values.indexOf(sanitized) < 0) {
+    if (this.enum_values.indexOf(sanitized) < 0) {
       sanitized = this.enum_values[0];
     }
+    // 引用 ouziming
+    if (this.schema.options && this.schema.options.refsSource) {
+      sanitized = value;
+    };
 
-    if(this.value === sanitized) {
+    if (this.value === sanitized) {
       return;
     }
 
-    if(initial) this.is_dirty = false;
-    else if(this.jsoneditor.options.show_errors === "change") this.is_dirty = true;
+    if (initial) this.is_dirty = false;
+    else if (this.jsoneditor.options.show_errors === 'change')
+      this.is_dirty = true;
 
     this.input.value = this.enum_options[this.enum_values.indexOf(sanitized)];
-    if(this.select2) {
-      if(this.select2v4)
-        this.select2.val(this.input.value).trigger("change");
-      else
-        this.select2.select2('val',this.input.value);
+    if (this.select2) {
+      if (this.select2v4) this.select2.val(this.input.value).trigger('change');
+      else this.select2.select2('val', this.input.value);
     }
     this.value = sanitized;
     this.onChange();
@@ -28,34 +32,31 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   },
   register: function() {
     this._super();
-    if(!this.input) return;
-    this.input.setAttribute('name',this.formname);
+    if (!this.input) return;
+    this.input.setAttribute('name', this.formname);
   },
   unregister: function() {
     this._super();
-    if(!this.input) return;
+    if (!this.input) return;
     this.input.removeAttribute('name');
   },
   getNumColumns: function() {
-    if(!this.enum_options) return 3;
+    if (!this.enum_options) return 3;
     var longest_text = this.getTitle().length;
-    for(var i=0; i<this.enum_options.length; i++) {
-      longest_text = Math.max(longest_text,this.enum_options[i].length+4);
+    for (var i = 0; i < this.enum_options.length; i++) {
+      longest_text = Math.max(longest_text, this.enum_options[i].length + 4);
     }
-    return Math.min(12,Math.max(longest_text/7,2));
+    return Math.min(12, Math.max(longest_text / 7, 2));
   },
   typecast: function(value) {
-    if(this.schema.type === "boolean") {
+    if (this.schema.type === 'boolean') {
       return !!value;
-    }
-    else if(this.schema.type === "number") {
-      return 1*value;
-    }
-    else if(this.schema.type === "integer") {
-      return Math.floor(value*1);
-    }
-    else {
-      return ""+value;
+    } else if (this.schema.type === 'number') {
+      return 1 * value;
+    } else if (this.schema.type === 'integer') {
+      return Math.floor(value * 1);
+    } else {
+      return '' + value;
     }
   },
   getValue: function() {
@@ -72,74 +73,123 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     this.enum_display = [];
     var i;
 
+    /**
+     * 数据从动态模型api获取
+     * ouziming 2020-06-18
+     */
+    if (self.schema.options && self.schema.options.refsSource) {
+      var refsSource = self.schema.options.refsSource
+      var schemaName = refsSource.refsSchema;
+      var query = {
+        limit: 500
+      };
+      var fields = [];
+      var labelField = refsSource.labelField;
+      var valueField = refsSource.valueField || labelField;
+      if (refsSource.refsNodePath) {
+        query._nodePath = refsSource.refsNodePath;
+      }
+      if (labelField) {
+        fields.push(labelField)
+      }
+      if (refsSource.valueField) {
+        fields.push(refsSource.valueField)
+      }
+      // 联动字段
+      if (self.options.effect && self.options.effect.effectField) {
+        fields.push(self.options.effect.effectField)
+      }
+      self.jsoneditor.options.fetchResourceBySchema(schemaName, query, fields, function(data) {
+        self.fetchSource = data;
+        $each(data, function(i, option) {
+          self.enum_options[i] = '' + option[valueField];
+          self.enum_display[i] = '' + option[labelField];
+          self.enum_values[i] = self.typecast(option[valueField]);
+        });
+        var selectInput = self.input || document.querySelector('[data-schemapath="'+ self.path + '"] [name="' + self.formname + '"]');
+        selectInput && self.theme.setSelectOptions(
+          selectInput,
+          self.enum_options,
+          self.enum_display
+        );
+        if (!self.value) {
+          self.value = self.enum_values[0];
+          selectInput && (selectInput.value = self.enum_values[0]);
+          setTimeout(function () {
+            self.onWatchedFieldChange();
+          }, 100)
+        } else {
+          self.value = self.value || '';
+          selectInput && (selectInput.value = self.value);
+          self.onWatchedFieldChange();
+        }
+      })
+    }
     // Enum options enumerated
-    if(this.schema["enum"]) {
-      var display = this.schema.options && this.schema.options.enum_titles || [];
+    else if (this.schema['enum']) {
+      var display =
+        (this.schema.options && this.schema.options.enum_titles) || [];
 
-      $each(this.schema["enum"],function(i,option) {
-        self.enum_options[i] = ""+option;
-        self.enum_display[i] = ""+(display[i] || option);
+      $each(this.schema['enum'], function(i, option) {
+        self.enum_options[i] = '' + option;
+        self.enum_display[i] = '' + (display[i] || option);
         self.enum_values[i] = self.typecast(option);
       });
 
-      if(!this.isRequired()){
+      if (!this.isRequired()) {
         self.enum_display.unshift(' ');
         self.enum_options.unshift('undefined');
         self.enum_values.unshift(undefined);
       }
-
     }
     // Boolean
-    else if(this.schema.type === "boolean") {
-      self.enum_display = this.schema.options && this.schema.options.enum_titles || ['true','false'];
-      self.enum_options = ['1',''];
-      self.enum_values = [true,false];
+    else if (this.schema.type === 'boolean') {
+      self.enum_display = (this.schema.options &&
+        this.schema.options.enum_titles) || ['true', 'false'];
+      self.enum_options = ['1', ''];
+      self.enum_values = [true, false];
 
-      if(!this.isRequired()){
+      if (!this.isRequired()) {
         self.enum_display.unshift(' ');
         self.enum_options.unshift('undefined');
         self.enum_values.unshift(undefined);
       }
-
     }
     // Dynamic Enum
-    else if(this.schema.enumSource) {
+    else if (this.schema.enumSource) {
       this.enumSource = [];
       this.enum_display = [];
       this.enum_options = [];
       this.enum_values = [];
 
       // Shortcut declaration for using a single array
-      if(!(Array.isArray(this.schema.enumSource))) {
-        if(this.schema.enumValue) {
+      if (!Array.isArray(this.schema.enumSource)) {
+        if (this.schema.enumValue) {
           this.enumSource = [
             {
               source: this.schema.enumSource,
               value: this.schema.enumValue
             }
           ];
-        }
-        else {
+        } else {
           this.enumSource = [
             {
               source: this.schema.enumSource
             }
           ];
         }
-      }
-      else {
-        for(i=0; i<this.schema.enumSource.length; i++) {
+      } else {
+        for (i = 0; i < this.schema.enumSource.length; i++) {
           // Shorthand for watched variable
-          if(typeof this.schema.enumSource[i] === "string") {
+          if (typeof this.schema.enumSource[i] === 'string') {
             this.enumSource[i] = {
               source: this.schema.enumSource[i]
             };
           }
           // Make a copy of the schema
-          else if(!(Array.isArray(this.schema.enumSource[i]))) {
-            this.enumSource[i] = $extend({},this.schema.enumSource[i]);
-          }
-          else {
+          else if (!Array.isArray(this.schema.enumSource[i])) {
+            this.enumSource[i] = $extend({}, this.schema.enumSource[i]);
+          } else {
             this.enumSource[i] = this.schema.enumSource[i];
           }
         }
@@ -147,15 +197,24 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
 
       // Now, enumSource is an array of sources
       // Walk through this array and fix up the values
-      for(i=0; i<this.enumSource.length; i++) {
-        if(this.enumSource[i].value) {
-          this.enumSource[i].value = this.jsoneditor.compileTemplate(this.enumSource[i].value, this.template_engine);
+      for (i = 0; i < this.enumSource.length; i++) {
+        if (this.enumSource[i].value) {
+          this.enumSource[i].value = this.jsoneditor.compileTemplate(
+            this.enumSource[i].value,
+            this.template_engine
+          );
         }
-        if(this.enumSource[i].title) {
-          this.enumSource[i].title = this.jsoneditor.compileTemplate(this.enumSource[i].title, this.template_engine);
+        if (this.enumSource[i].title) {
+          this.enumSource[i].title = this.jsoneditor.compileTemplate(
+            this.enumSource[i].title,
+            this.template_engine
+          );
         }
-        if(this.enumSource[i].filter) {
-          this.enumSource[i].filter = this.jsoneditor.compileTemplate(this.enumSource[i].filter, this.template_engine);
+        if (this.enumSource[i].filter) {
+          this.enumSource[i].filter = this.jsoneditor.compileTemplate(
+            this.enumSource[i].filter,
+            this.template_engine
+          );
         }
       }
     }
@@ -166,26 +225,42 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   },
   build: function() {
     var self = this;
-    console.log(this.schema);
     // if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     /**
      * 必填加*号提示
      * ouziming
      */
-    if((this.schema.minLength && this.schema.minLength >= 1) || (this.jsoneditor.schema.required && this.jsoneditor.schema.required.indexOf(this.key) > -1)) {
-      if(!this.options.compact) this.header = this.label = this.theme.getFormRequiredInputLabel(this.getTitle());
+    if (
+      (this.schema.minLength && this.schema.minLength >= 1) ||
+      (this.jsoneditor.schema.required &&
+        this.jsoneditor.schema.required.indexOf(this.key) > -1)
+    ) {
+      if (!this.options.compact)
+        this.header = this.label = this.theme.getFormRequiredInputLabel(
+          this.getTitle()
+        );
     } else {
-      if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
+      if (!this.options.compact)
+        this.header = this.label = this.theme.getFormInputLabel(
+          this.getTitle()
+        );
     }
 
-    if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
-    if(this.options.infoText) this.infoButton = this.theme.getInfoButton(this.options.infoText);
-    if(this.options.compact) this.container.classList.add('compact');
-
+    if (this.schema.description)
+      this.description = this.theme.getFormInputDescription(
+        this.schema.description
+      );
+    if (this.options.infoText)
+      this.infoButton = this.theme.getInfoButton(this.options.infoText);
+    if (this.options.compact) this.container.classList.add('compact');
     this.input = this.theme.getSelectInput(this.enum_options);
-    this.theme.setSelectOptions(this.input,this.enum_options,this.enum_display);
+    this.theme.setSelectOptions(
+      this.input,
+      this.enum_options,
+      this.enum_display
+    );
 
-    if(this.schema.readOnly || this.schema.readonly) {
+    if (this.schema.readOnly || this.schema.readonly) {
       this.always_disabled = true;
       this.input.disabled = true;
     }
@@ -193,67 +268,76 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     // Set custom attributes on input element. Parameter is array of protected keys. Empty array if none.
     this.setInputAttributes([]);
 
-    this.input.addEventListener('change',function(e) {
+    this.input.addEventListener('change', function(e) {
       e.preventDefault();
       e.stopPropagation();
       self.onInputChange();
     });
 
-    this.control = this.theme.getFormControl(this.label, this.input, this.description, this.infoButton);
+    this.control = this.theme.getFormControl(
+      this.label,
+      this.input,
+      this.description,
+      this.infoButton
+    );
     this.container.appendChild(this.control);
 
     this.value = this.enum_values[0];
+    // hideLabel为true隐藏label
+    if (this.schema.options && this.schema.options.hideLabel) {
+      this.label && this.label.remove();
+    }
   },
   onInputChange: function() {
     var val = this.typecast(this.input.value);
 
     var new_val;
     // Invalid option, use first option instead
-    if(this.enum_values.indexOf(val) === -1) {
+    if (this.enum_values.indexOf(val) === -1) {
       new_val = this.enum_values[0];
-    }
-    else {
+    } else {
       new_val = this.enum_values[this.enum_values.indexOf(val)];
     }
 
     // If valid hasn't changed
-    if(new_val === this.value) return;
+    if (new_val === this.value) return;
 
     this.is_dirty = true;
 
     // Store new value and propogate change event
     this.value = new_val;
     this.onChange(true);
-
   },
   setupSelect2: function() {
     // If the Select2 library is loaded use it when we have lots of items
-    if(window.jQuery && window.jQuery.fn && window.jQuery.fn.select2 && (this.enum_options.length > 2 || (this.enum_options.length && this.enumSource))) {
-      var options = $extend({},JSONEditor.plugins.select2);
-      if(this.schema.options && this.schema.options.select2_options) options = $extend(options,this.schema.options.select2_options);
+    if (
+      window.jQuery &&
+      window.jQuery.fn &&
+      window.jQuery.fn.select2 &&
+      (this.enum_options.length > 2 ||
+        (this.enum_options.length && this.enumSource))
+    ) {
+      var options = $extend({}, JSONEditor.plugins.select2);
+      if (this.schema.options && this.schema.options.select2_options)
+        options = $extend(options, this.schema.options.select2_options);
       this.select2 = window.jQuery(this.input).select2(options);
-      this.select2v4 = this.select2.select2.hasOwnProperty("amd");
+      this.select2v4 = this.select2.select2.hasOwnProperty('amd');
 
       var self = this;
-      this.select2.on('select2-blur',function() {
-        if(self.select2v4)
-          self.input.value = self.select2.val();
-        else
-          self.input.value = self.select2.select2('val');
+      this.select2.on('select2-blur', function() {
+        if (self.select2v4) self.input.value = self.select2.val();
+        else self.input.value = self.select2.select2('val');
 
         self.onInputChange();
       });
 
-      this.select2.on('change',function() {
-        if(self.select2v4)
-          self.input.value = self.select2.val();
-        else
-          self.input.value = self.select2.select2('val');
+      this.select2.on('change', function() {
+        if (self.select2v4) self.input.value = self.select2.val();
+        else self.input.value = self.select2.select2('val');
 
         self.onInputChange();
       });
-    }
-    else {
+    } else {
       this.select2 = null;
     }
   },
@@ -263,55 +347,67 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     this.setupSelect2();
   },
   onWatchedFieldChange: function() {
-    var self = this, vars, j;
-
+    var self = this,
+      vars,
+      j;
     // If this editor uses a dynamic select box
-    if(this.enumSource) {
+    if (this.enumSource) {
       vars = this.getWatchedFieldValues();
       var select_options = [];
       var select_titles = [];
 
-      for(var i=0; i<this.enumSource.length; i++) {
+      for (var i = 0; i < this.enumSource.length; i++) {
         // Constant values
-        if(Array.isArray(this.enumSource[i])) {
+        if (Array.isArray(this.enumSource[i])) {
           select_options = select_options.concat(this.enumSource[i]);
           select_titles = select_titles.concat(this.enumSource[i]);
-        }
-        else {
+        } else {
           var items = [];
           // Static list of items
-          if(Array.isArray(this.enumSource[i].source)) {
+          if (Array.isArray(this.enumSource[i].source)) {
             items = this.enumSource[i].source;
-          // A watched field
+            // A watched field
           } else {
             items = vars[this.enumSource[i].source];
           }
 
-          if(items) {
+          if (items) {
             // Only use a predefined part of the array
-            if(this.enumSource[i].slice) {
-              items = Array.prototype.slice.apply(items,this.enumSource[i].slice);
+            if (this.enumSource[i].slice) {
+              items = Array.prototype.slice.apply(
+                items,
+                this.enumSource[i].slice
+              );
             }
             // Filter the items
-            if(this.enumSource[i].filter) {
+            if (this.enumSource[i].filter) {
               var new_items = [];
-              for(j=0; j<items.length; j++) {
-                if(this.enumSource[i].filter({i:j,item:items[j],watched:vars})) new_items.push(items[j]);
+              for (j = 0; j < items.length; j++) {
+                if (
+                  this.enumSource[i].filter({
+                    i: j,
+                    item: items[j],
+                    watched: vars
+                  })
+                )
+                  new_items.push(items[j]);
               }
               items = new_items;
             }
 
             var item_titles = [];
             var item_values = [];
-            for(j=0; j<items.length; j++) {
+            for (j = 0; j < items.length; j++) {
               var item = items[j];
 
               // Rendered value
-              if(this.enumSource[i].value) {
-                item_values[j] = this.typecast(this.enumSource[i].value({
-                  i: j,
-                  item: item
-                }));
+              if (this.enumSource[i].value) {
+                item_values[j] = this.typecast(
+                  this.enumSource[i].value({
+                    i: j,
+                    item: item
+                  })
+                );
               }
               // Use value directly
               else {
@@ -319,7 +415,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
               }
 
               // Rendered title
-              if(this.enumSource[i].title) {
+              if (this.enumSource[i].title) {
                 item_titles[j] = this.enumSource[i].title({
                   i: j,
                   item: item
@@ -346,20 +442,20 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
       this.enum_display = select_titles;
       this.enum_values = select_options;
 
-      if(this.select2) {
+      if (this.select2) {
         this.select2.select2('destroy');
       }
 
       // If the previous value is still in the new select options, stick with it
-      if(select_options.indexOf(prev_value) !== -1) {
+      if (select_options.indexOf(prev_value) !== -1) {
         this.input.value = prev_value;
         this.value = prev_value;
       }
       // Otherwise, set the value to the first select option
       else {
         this.input.value = select_options[0];
-        this.value = this.typecast(select_options[0] || "");
-        if(this.parent) this.parent.onChildEditorChange(this);
+        this.value = this.typecast(select_options[0] || '');
+        if (this.parent) this.parent.onChildEditorChange(this);
         else this.jsoneditor.onChange();
         this.jsoneditor.notifyWatchers(this.path);
       }
@@ -367,52 +463,97 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
       this.setupSelect2();
     }
 
+    /**
+     * 假如该值会影响其他字段
+     * ouziming
+     */
+    if (this.options && this.options.effect && this.options.effect.effectField) {
+      var effectField = this.options.effect.effectField;
+      var effectPath = this.options.effect.effectPath;
+      var targetPath = ''
+      var effectPathWrap = ''
+      if (effectPath.indexOf('.') > -1) {
+        effectPath.split('.').forEach(function(i) {
+          targetPath = i === 'root' ? root : '[' + i + ']'
+          effectPathWrap = effectPath
+        })
+      } else {
+        targetPath = 'root[' + effectPath + ']'
+        effectPathWrap = 'root.' + effectPath + ''
+      }
+      var effectEle = document.querySelector('[data-schemapath="'+ effectPathWrap + '"] [name="' + targetPath + '"]');
+      try {
+        console.log('change!');
+        if (!effectEle) {
+          throw 'has no ' + effectPath + ' element'
+        }
+        // 找到选中的数据项
+        var refsSource = self.schema.options.refsSource
+        var valueField = refsSource.valueField || refsSource.labelField;
+        var selectItem;
+        self.fetchSource.forEach(function(item) {
+          if (item[valueField] == self.value) {
+            selectItem = item
+          }
+        })
+        var effectValue = selectItem[effectField];
+        effectEle.value = effectValue;
+        // self.jsoneditor.editors[effectPathWrap].setValue(effectValue)
+        self.jsoneditor.editors[effectPathWrap].value = effectValue;
+      } catch(e) {
+        console.error(e)
+      }
+    }
+
     this._super();
   },
   enable: function() {
-    if(!this.always_disabled) {
+    if (!this.always_disabled) {
       this.input.disabled = false;
-      if(this.select2) {
-        if(this.select2v4)
-          this.select2.prop("disabled",false);
-        else
-          this.select2.select2("enable",true);
+      if (this.select2) {
+        if (this.select2v4) this.select2.prop('disabled', false);
+        else this.select2.select2('enable', true);
       }
     }
     this._super();
   },
   disable: function(always_disabled) {
-    if(always_disabled) this.always_disabled = true;
+    if (always_disabled) this.always_disabled = true;
     this.input.disabled = true;
-    if(this.select2) {
-      if(this.select2v4)
-        this.select2.prop("disabled",true);
-      else
-        this.select2.select2("enable",false);
+    if (this.select2) {
+      if (this.select2v4) this.select2.prop('disabled', true);
+      else this.select2.select2('enable', false);
     }
     this._super();
   },
   destroy: function() {
-    if(this.label && this.label.parentNode) this.label.parentNode.removeChild(this.label);
-    if(this.description && this.description.parentNode) this.description.parentNode.removeChild(this.description);
-    if(this.input && this.input.parentNode) this.input.parentNode.removeChild(this.input);
-    if(this.select2) {
+    if (this.label && this.label.parentNode)
+      this.label.parentNode.removeChild(this.label);
+    if (this.description && this.description.parentNode)
+      this.description.parentNode.removeChild(this.description);
+    if (this.input && this.input.parentNode)
+      this.input.parentNode.removeChild(this.input);
+    if (this.select2) {
       this.select2.select2('destroy');
       this.select2 = null;
     }
 
     this._super();
   },
-  showValidationErrors: function (errors) {
+  showValidationErrors: function(errors) {
     var self = this;
 
-    if (this.jsoneditor.options.show_errors === "always") {}
-    else if(!this.is_dirty && this.previous_error_setting===this.jsoneditor.options.show_errors) return;
+    if (this.jsoneditor.options.show_errors === 'always') {
+    } else if (
+      !this.is_dirty &&
+      this.previous_error_setting === this.jsoneditor.options.show_errors
+    )
+      return;
 
     this.previous_error_setting = this.jsoneditor.options.show_errors;
 
     var messages = [];
-    $each(errors, function (i, error) {
+    $each(errors, function(i, error) {
       if (error.path === self.path) {
         messages.push(error.message);
       }
@@ -420,8 +561,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
 
     if (messages.length) {
       this.theme.addInputError(this.input, messages.join('. ') + '.');
-    }
-    else {
+    } else {
       this.theme.removeInputError(this.input);
     }
   }
