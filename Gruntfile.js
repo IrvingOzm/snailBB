@@ -225,7 +225,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', ['run:mocha']);
 
   // Default task.
-  grunt.registerTask('default', ['jshint:beforeconcat', 'concat', 'uglify', 'cssmin']);
+  grunt.registerTask('default', ['concat', 'uglify', 'cssmin']);
 
   grunt.registerTask('rawbuild', ['concat', 'uglify', 'cssmin']);
 
