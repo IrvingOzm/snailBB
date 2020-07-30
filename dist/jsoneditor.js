@@ -7952,14 +7952,25 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
         e.stopPropagation();
 
         if (this.files && this.files.length) {
-          var fr = new FileReader();
-          fr.onload = function(evt) {
-            self.preview_value = evt.target.result;
+          /**
+           * 大文件不read
+           * 大文件使用fileReader读取，导致页面卡顿
+           * ouziming 2020-07-30
+           */
+          if (this.files[0].size < 150000000) {
+            var fr = new FileReader();
+            fr.onload = function(evt) {
+              self.preview_value = evt.target.result;
+              self.refreshPreview();
+              self.onChange(true);
+              fr = null;
+            };
+            fr.readAsDataURL(this.files[0]);
+          } else {
+            self.preview_value = new Date().getTime() + '';
             self.refreshPreview();
             self.onChange(true);
-            fr = null;
-          };
-          fr.readAsDataURL(this.files[0]);
+          }
         }
       });
     }
